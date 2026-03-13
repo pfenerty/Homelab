@@ -15,4 +15,4 @@ spec:
         secretRef:
             name: sops-age
     dependsOn:
-        - cilium
+        - name: cilium
