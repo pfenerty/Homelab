@@ -4,4 +4,8 @@ resources:
     - flux-system/
     - cilium.kustomization.yaml
     - gateway-api.kustomization.yaml
-    - apps.kustomization.yaml
+    - metrics-server.kustomization.yaml
+    - tekton.kustomization.yaml
+    - tailscale.kustomization.yaml
+    - hubble.kustomization.yaml
+    - cloudflare-gateway.kustomization.yaml
