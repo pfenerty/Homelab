@@ -4,6 +4,9 @@ metadata:
     name: apps
     namespace: flux-system
 spec:
+    dependsOn:
+        - name: cilium
+        - name: gateway-api
     interval: 10m0s
     path: ./talos-cluster/flux/apps
     prune: true
