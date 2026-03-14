@@ -24,4 +24,5 @@ spec:
           targetPath: oauth.clientSecret
           valuesKey: clientSecret
     targetNamespace: tailscale-operator
-    createNamespace: true
+    install:
+        createNamespace: true
