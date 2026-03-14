@@ -4,3 +4,6 @@ resources:
     - dashboard.yaml
     - pipelines.yaml
     - triggers.yaml
+
+patches:
+    - path: tailscale-expose-patch.yaml
