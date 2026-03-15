@@ -15,7 +15,6 @@ spec:
                 namespace: flux-system
             interval: 12h
     targetNamespace: local-path-storage
-    createNamespace: true
     values:
         storageClass:
             defaultClass: true
