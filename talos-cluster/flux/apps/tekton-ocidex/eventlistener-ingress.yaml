@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
     name: ocidex-eventlistener
-    namespace: tekton-pipelines
+    namespace: ocidex-ci
     annotations:
         tailscale.com/funnel: "true"
 spec:
@@ -14,7 +14,7 @@ spec:
                     pathType: Prefix
                     backend:
                         service:
-                            name: el-ocidex-listener
+                            name: el-ocidex-github-listener
                             port:
                                 number: 8080
     tls:
