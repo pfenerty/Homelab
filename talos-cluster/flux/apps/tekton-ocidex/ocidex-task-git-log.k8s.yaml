@@ -1,0 +1,69 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-log
+  namespace: tekton-pipelines
+spec:
+  stepTemplate:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+  steps:
+    - image: cgr.dev/chainguard/git:latest
+      name: log-git-state
+      script: |
+        #!/bin/sh
+        set -e
+
+        git config --global --add safe.directory /workspace/workspace
+
+        DIVIDER="══════════════════════════════════════"
+
+        echo "$DIVIDER"
+        echo " Git State"
+        echo "$DIVIDER"
+        echo ""
+
+        echo "--- Commit ---"
+        echo "Hash (full):  $(git rev-parse HEAD)"
+        echo "Hash (short): $(git rev-parse --short HEAD)"
+        echo "Author:       $(git log -1 --pretty='%aN <%aE>')"
+        echo "Date:         $(git log -1 --pretty='%aI')"
+        echo "Subject:      $(git log -1 --pretty='%s')"
+        BODY="$(git log -1 --pretty='%b')"
+        if [ -n "$BODY" ]; then
+          echo ""
+          echo "Body:"
+          printf '%s
+        ' "$BODY" | while IFS= read -r _line; do printf '  %s
+        ' "$_line"; done
+        fi
+        echo ""
+
+        echo "--- Repository ---"
+        if git remote get-url origin > /dev/null 2>&1; then
+          echo "Remote URL:   $(git remote get-url origin)"
+        else
+          echo "Remote URL:   (no remote configured)"
+        fi
+        BRANCH="$(git symbolic-ref HEAD 2>/dev/null || echo 'detached HEAD')"
+        echo "Branch/Ref:   $BRANCH"
+        echo ""
+
+        echo "--- Changed Files ---"
+        git diff-tree --no-commit-id -r --name-status HEAD
+        echo ""
+
+        echo "--- Diff Stats ---"
+        git show --stat --no-patch HEAD
+        echo ""
+
+        echo "$DIVIDER"
+      workingDir: $(workspaces.workspace.path)
+  workspaces:
+    - name: workspace

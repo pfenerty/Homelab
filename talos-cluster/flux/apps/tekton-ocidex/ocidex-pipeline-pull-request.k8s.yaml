@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: ocidex-pull-request
+  namespace: tekton-pipelines
+spec:
+  params:
+    - name: git-url
+      type: string
+    - name: git-revision
+      type: string
+    - name: project-name
+      type: string
+    - name: app-root
+      type: string
+    - name: build-path
+      type: string
+  tasks:
+    - name: clone
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: workspace
+    - name: log-git-state
+      runAfter:
+        - clone
+      taskRef:
+        kind: Task
+        name: git-log
+      workspaces:
+        - name: workspace
+          workspace: workspace
+  workspaces:
+    - name: workspace
