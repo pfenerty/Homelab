@@ -1,199 +1,199 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ocidex-tekton-triggers
-  namespace: ocidex-ci
+    name: ocidex-tekton-triggers
+    namespace: ocidex-ci
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ocidex-tekton-triggers-eventlistener
-  namespace: ocidex-ci
+    name: ocidex-tekton-triggers-eventlistener
+    namespace: ocidex-ci
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: tekton-triggers-eventlistener-roles
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: tekton-triggers-eventlistener-roles
 subjects:
-  - kind: ServiceAccount
-    name: ocidex-tekton-triggers
+    - kind: ServiceAccount
+      name: ocidex-tekton-triggers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ocidex-tekton-triggers-eventlistener
-  namespace: ocidex-ci
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: tekton-triggers-eventlistener-clusterroles
-subjects:
-  - kind: ServiceAccount
-    name: ocidex-tekton-triggers
+    name: ocidex-tekton-triggers-eventlistener
     namespace: ocidex-ci
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: tekton-triggers-eventlistener-clusterroles
+subjects:
+    - kind: ServiceAccount
+      name: ocidex-tekton-triggers
+      namespace: ocidex-ci
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ocidex-github-push
-  namespace: ocidex-ci
+    name: ocidex-github-push
+    namespace: ocidex-ci
 spec:
-  params:
-    - name: gitrevision
-      value: $(body.head_commit.id)
-    - name: namespace
-      value: ocidex-ci
-    - name: gitrepositoryurl
-      value: https://github.com/$(body.repository.full_name)
-    - name: projectname
-      value: $(body.repository.name)
+    params:
+        - name: gitrevision
+          value: $(body.head_commit.id)
+        - name: namespace
+          value: ocidex-ci
+        - name: gitrepositoryurl
+          value: https://github.com/$(body.repository.full_name)
+        - name: projectname
+          value: $(body.repository.name)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: ocidex-github-push-trigger-template
-  namespace: ocidex-ci
+    name: ocidex-github-push-trigger-template
+    namespace: ocidex-ci
 spec:
-  params:
-    - description: The git revision
-      name: gitrevision
-    - description: The git repository url
-      name: gitrepositoryurl
-    - description: The namespace to create the resources
-      name: namespace
-    - description: name of the project
-      name: projectname
-  resourcetemplates:
-    - apiVersion: tekton.dev/v1
-      kind: PipelineRun
-      metadata:
-        generateName: ocidex-github-push-pipeline-run-
-        namespace: $(tt.params.namespace)
-      spec:
-        params:
-          - name: git-revision
-            value: $(tt.params.gitrevision)
-          - name: git-url
-            value: $(tt.params.gitrepositoryurl)
-          - name: project-name
-            value: $(tt.params.projectname)
-          - name: app-root
-            value: src
-          - name: build-path
-            value: cmd
-        pipelineRef:
-          name: ocidex-push
-        serviceAccountName: ocidex-tekton-triggers
-        workspaces:
-          - name: workspace
-            volumeClaimTemplate:
-              spec:
-                accessModes:
-                  - ReadWriteOnce
-                resources:
-                  requests:
-                    storage: 1Gi
+    params:
+        - description: The git revision
+          name: gitrevision
+        - description: The git repository url
+          name: gitrepositoryurl
+        - description: The namespace to create the resources
+          name: namespace
+        - description: name of the project
+          name: projectname
+    resourcetemplates:
+        - apiVersion: tekton.dev/v1
+          kind: PipelineRun
+          metadata:
+              generateName: ocidex-github-push-pipeline-run-
+              namespace: $(tt.params.namespace)
+          spec:
+              params:
+                  - name: git-revision
+                    value: $(tt.params.gitrevision)
+                  - name: git-url
+                    value: $(tt.params.gitrepositoryurl)
+                  - name: project-name
+                    value: $(tt.params.projectname)
+                  - name: app-root
+                    value: src
+                  - name: build-path
+                    value: cmd
+              pipelineRef:
+                  name: ocidex-push
+              serviceAccountName: ocidex-tekton-triggers
+              workspaces:
+                  - name: workspace
+                    volumeClaimTemplate:
+                        spec:
+                            accessModes:
+                                - ReadWriteOnce
+                            resources:
+                                requests:
+                                    storage: 1Gi
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ocidex-github-pull-request
-  namespace: ocidex-ci
+    name: ocidex-github-pull-request
+    namespace: ocidex-ci
 spec:
-  params:
-    - name: gitrevision
-      value: $(body.pull_request.head.sha)
-    - name: namespace
-      value: ocidex-ci
-    - name: gitrepositoryurl
-      value: https://github.com/$(body.repository.full_name)
-    - name: projectname
-      value: $(body.repository.name)
+    params:
+        - name: gitrevision
+          value: $(body.pull_request.head.sha)
+        - name: namespace
+          value: ocidex-ci
+        - name: gitrepositoryurl
+          value: https://github.com/$(body.repository.full_name)
+        - name: projectname
+          value: $(body.repository.name)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: ocidex-github-pull-request-trigger-template
-  namespace: ocidex-ci
+    name: ocidex-github-pull-request-trigger-template
+    namespace: ocidex-ci
 spec:
-  params:
-    - description: The git revision
-      name: gitrevision
-    - description: The git repository url
-      name: gitrepositoryurl
-    - description: The namespace to create the resources
-      name: namespace
-    - description: name of the project
-      name: projectname
-  resourcetemplates:
-    - apiVersion: tekton.dev/v1
-      kind: PipelineRun
-      metadata:
-        generateName: ocidex-github-pull-request-pipeline-run-
-        namespace: $(tt.params.namespace)
-      spec:
-        params:
-          - name: git-revision
-            value: $(tt.params.gitrevision)
-          - name: git-url
-            value: $(tt.params.gitrepositoryurl)
-          - name: project-name
-            value: $(tt.params.projectname)
-          - name: app-root
-            value: src
-          - name: build-path
-            value: cmd
-        pipelineRef:
-          name: ocidex-pull-request
-        serviceAccountName: ocidex-tekton-triggers
-        workspaces:
-          - name: workspace
-            volumeClaimTemplate:
-              spec:
-                accessModes:
-                  - ReadWriteOnce
-                resources:
-                  requests:
-                    storage: 1Gi
+    params:
+        - description: The git revision
+          name: gitrevision
+        - description: The git repository url
+          name: gitrepositoryurl
+        - description: The namespace to create the resources
+          name: namespace
+        - description: name of the project
+          name: projectname
+    resourcetemplates:
+        - apiVersion: tekton.dev/v1
+          kind: PipelineRun
+          metadata:
+              generateName: ocidex-github-pull-request-pipeline-run-
+              namespace: $(tt.params.namespace)
+          spec:
+              params:
+                  - name: git-revision
+                    value: $(tt.params.gitrevision)
+                  - name: git-url
+                    value: $(tt.params.gitrepositoryurl)
+                  - name: project-name
+                    value: $(tt.params.projectname)
+                  - name: app-root
+                    value: src
+                  - name: build-path
+                    value: cmd
+              pipelineRef:
+                  name: ocidex-pull-request
+              serviceAccountName: ocidex-tekton-triggers
+              workspaces:
+                  - name: workspace
+                    volumeClaimTemplate:
+                        spec:
+                            accessModes:
+                                - ReadWriteOnce
+                            resources:
+                                requests:
+                                    storage: 1Gi
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: ocidex-github-listener
-  namespace: ocidex-ci
+    name: ocidex-github-listener
+    namespace: ocidex-ci
 spec:
-  serviceAccountName: ocidex-tekton-triggers
-  triggers:
-    - bindings:
-        - kind: TriggerBinding
-          ref: ocidex-github-push
-      interceptors:
-        - params:
-            - name: eventTypes
-              value:
-                - push
-            - name: secretRef
-              value:
-                secretKey: secret
-                secretName: github-webhook-secret
-          ref:
-            kind: ClusterInterceptor
-            name: github
-      template:
-        ref: ocidex-github-push-trigger-template
-    - bindings:
-        - kind: TriggerBinding
-          ref: ocidex-github-pull-request
-      interceptors:
-        - params:
-            - name: eventTypes
-              value:
-                - pull_request
-            - name: secretRef
-              value:
-                secretKey: secret
-                secretName: github-webhook-secret
-          ref:
-            kind: ClusterInterceptor
-            name: github
-      template:
-        ref: ocidex-github-pull-request-trigger-template
+    serviceAccountName: ocidex-tekton-triggers
+    triggers:
+        - bindings:
+              - kind: TriggerBinding
+                ref: ocidex-github-push
+          interceptors:
+              - params:
+                    - name: eventTypes
+                      value:
+                          - push
+                    - name: secretRef
+                      value:
+                          secretKey: secretToken
+                          secretName: github-webhook-secret
+                ref:
+                    kind: ClusterInterceptor
+                    name: github
+          template:
+              ref: ocidex-github-push-trigger-template
+        - bindings:
+              - kind: TriggerBinding
+                ref: ocidex-github-pull-request
+          interceptors:
+              - params:
+                    - name: eventTypes
+                      value:
+                          - pull_request
+                    - name: secretRef
+                      value:
+                          secretKey: secretToken
+                          secretName: github-webhook-secret
+                ref:
+                    kind: ClusterInterceptor
+                    name: github
+          template:
+              ref: ocidex-github-pull-request-trigger-template
