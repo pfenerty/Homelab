@@ -1,8 +1,8 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: git-log
-  namespace: tekton-pipelines
+  name: ocidex-git-log
+  namespace: tekton-builds
 spec:
   stepTemplate:
     securityContext:

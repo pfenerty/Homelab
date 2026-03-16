@@ -1,48 +1,47 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: tekton-triggers
-  namespace: tekton-pipelines
+  name: ocidex-tekton-triggers
+  namespace: tekton-builds
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tekton-triggers-eventlistener-ocidex
-  namespace: tekton-pipelines
+  name: ocidex-tekton-triggers-eventlistener
+  namespace: tekton-builds
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: tekton-triggers-eventlistener-roles
 subjects:
   - kind: ServiceAccount
-    name: tekton-triggers
-    namespace: tekton-pipelines
+    name: ocidex-tekton-triggers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tekton-triggers-eventlistener-ocidex
-  namespace: tekton-pipelines
+  name: ocidex-tekton-triggers-eventlistener
+  namespace: tekton-builds
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: tekton-triggers-eventlistener-clusterroles
 subjects:
   - kind: ServiceAccount
-    name: tekton-triggers
-    namespace: tekton-pipelines
+    name: ocidex-tekton-triggers
+    namespace: tekton-builds
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ocidex-push
-  namespace: tekton-pipelines
+  name: ocidex-github-push
+  namespace: tekton-builds
 spec:
   params:
     - name: gitrevision
       value: $(body.head_commit.id)
     - name: namespace
-      value: tekton-pipelines
+      value: tekton-builds
     - name: gitrepositoryurl
       value: https://github.com/$(body.repository.full_name)
     - name: projectname
@@ -51,8 +50,8 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: ocidex-push-trigger-template
-  namespace: tekton-pipelines
+  name: ocidex-github-push-trigger-template
+  namespace: tekton-builds
 spec:
   params:
     - description: The git revision
@@ -67,7 +66,7 @@ spec:
     - apiVersion: tekton.dev/v1
       kind: PipelineRun
       metadata:
-        generateName: ocidex-push-pipeline-run-
+        generateName: ocidex-github-push-pipeline-run-
         namespace: $(tt.params.namespace)
       spec:
         params:
@@ -83,7 +82,7 @@ spec:
             value: cmd
         pipelineRef:
           name: ocidex-push
-        serviceAccountName: tekton-triggers
+        serviceAccountName: ocidex-tekton-triggers
         workspaces:
           - name: workspace
             volumeClaimTemplate:
@@ -97,14 +96,14 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ocidex-pull-request
-  namespace: tekton-pipelines
+  name: ocidex-github-pull-request
+  namespace: tekton-builds
 spec:
   params:
     - name: gitrevision
       value: $(body.pull_request.head.sha)
     - name: namespace
-      value: tekton-pipelines
+      value: tekton-builds
     - name: gitrepositoryurl
       value: https://github.com/$(body.repository.full_name)
     - name: projectname
@@ -113,8 +112,8 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: ocidex-pull-request-trigger-template
-  namespace: tekton-pipelines
+  name: ocidex-github-pull-request-trigger-template
+  namespace: tekton-builds
 spec:
   params:
     - description: The git revision
@@ -129,7 +128,7 @@ spec:
     - apiVersion: tekton.dev/v1
       kind: PipelineRun
       metadata:
-        generateName: ocidex-pull-request-pipeline-run-
+        generateName: ocidex-github-pull-request-pipeline-run-
         namespace: $(tt.params.namespace)
       spec:
         params:
@@ -145,7 +144,7 @@ spec:
             value: cmd
         pipelineRef:
           name: ocidex-pull-request
-        serviceAccountName: tekton-triggers
+        serviceAccountName: ocidex-tekton-triggers
         workspaces:
           - name: workspace
             volumeClaimTemplate:
@@ -159,14 +158,14 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: ocidex-listener
-  namespace: tekton-pipelines
+  name: ocidex-github-listener
+  namespace: tekton-builds
 spec:
-  serviceAccountName: tekton-triggers
+  serviceAccountName: ocidex-tekton-triggers
   triggers:
     - bindings:
         - kind: TriggerBinding
-          ref: ocidex-push
+          ref: ocidex-github-push
       interceptors:
         - params:
             - name: eventTypes
@@ -174,16 +173,16 @@ spec:
                 - push
             - name: secretRef
               value:
-                secretKey: secretToken
+                secretKey: secret
                 secretName: github-webhook-secret
           ref:
             kind: ClusterInterceptor
             name: github
       template:
-        ref: ocidex-push-trigger-template
+        ref: ocidex-github-push-trigger-template
     - bindings:
         - kind: TriggerBinding
-          ref: ocidex-pull-request
+          ref: ocidex-github-pull-request
       interceptors:
         - params:
             - name: eventTypes
@@ -191,10 +190,10 @@ spec:
                 - pull_request
             - name: secretRef
               value:
-                secretKey: secretToken
+                secretKey: secret
                 secretName: github-webhook-secret
           ref:
             kind: ClusterInterceptor
             name: github
       template:
-        ref: ocidex-pull-request-trigger-template
+        ref: ocidex-github-pull-request-trigger-template

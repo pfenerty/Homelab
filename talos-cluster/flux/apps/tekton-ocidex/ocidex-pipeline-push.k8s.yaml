@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: ocidex-push
-  namespace: tekton-pipelines
+  namespace: tekton-builds
 spec:
   params:
     - name: git-url
@@ -11,9 +11,11 @@ spec:
       type: string
     - name: project-name
       type: string
-    - name: app-root
+    - description: path to root of the app (should contain go.mod, go.sum files)
+      name: app-root
       type: string
-    - name: build-path
+    - description: path under app-root to target for build
+      name: build-path
       type: string
   tasks:
     - name: clone
@@ -24,7 +26,7 @@ spec:
           value: $(params.git-revision)
       taskRef:
         kind: Task
-        name: git-clone
+        name: ocidex-git-clone
       workspaces:
         - name: output
           workspace: workspace
@@ -33,7 +35,7 @@ spec:
         - clone
       taskRef:
         kind: Task
-        name: git-log
+        name: ocidex-git-log
       workspaces:
         - name: workspace
           workspace: workspace

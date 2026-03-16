@@ -1,31 +1,46 @@
-import { App, Chart } from 'cdk8s';
-import { GitCloneTask, GitLogTask } from '@pfenerty/tekton-pipelines';
-import { OcidexPushPipeline } from './ocidex-push.pipeline';
-import { OcidexPullRequestPipeline } from './ocidex-pull-request.pipeline';
-import { OcidexChart } from './ocidex.chart';
+/**
+ * Reference implementation showing how to use @pfenerty/tekton-pipelines.
+ *
+ * Uses the core API: TektonProject, Pipeline, JOBS, and Job.
+ *
+ * Run: npx ts-node examples/main.ts   (or: make synth)
+ * Output: synth-output/*.yaml
+ */
+import {
+    TektonProject,
+    Pipeline,
+    JOBS,
+    Job,
+    TRIGGER_EVENTS,
+} from "@pfenerty/tekton-pipelines";
 
-const NAMESPACE = 'tekton-pipelines';
+// ─── Configuration ────────────────────────────────────────────────────────────
+const NAMESPACE = "tekton-builds";
 
-const app = new App();
+// ─── Define jobs ──────────────────────────────────────────────────────────────
+const clone = JOBS.clone();
+const gitLog = JOBS.gitLog({ needs: clone });
 
-const gitCloneChart = new Chart(app, 'ocidex-task-git-clone');
-new GitCloneTask(gitCloneChart, 'task', { namespace: NAMESPACE });
-
-const gitLogChart = new Chart(app, 'ocidex-task-git-log');
-new GitLogTask(gitLogChart, 'task', { namespace: NAMESPACE });
-
-const pushChart = new Chart(app, 'ocidex-pipeline-push');
-new OcidexPushPipeline(pushChart, 'pipeline', { namespace: NAMESPACE });
-
-const prChart = new Chart(app, 'ocidex-pipeline-pull-request');
-new OcidexPullRequestPipeline(prChart, 'pipeline', { namespace: NAMESPACE });
-
-new OcidexChart(app, 'ocidex-infra', {
-  namespace: NAMESPACE,
-  pushPipelineRef: 'ocidex-push',
-  pullRequestPipelineRef: 'ocidex-pull-request',
+// ─── Compose pipelines ───────────────────────────────────────────────────────
+const pushPipeline = new Pipeline({
+    name: "push",
+    triggers: [TRIGGER_EVENTS.PUSH],
+    jobs: [clone, gitLog],
 });
 
-void gitCloneChart, gitLogChart, pushChart, prChart;
+const prPipeline = new Pipeline({
+    name: "pull-request",
+    triggers: [TRIGGER_EVENTS.PULL_REQUEST],
+    jobs: [clone, gitLog],
+});
 
-app.synth();
+// ─── Synthesize everything ───────────────────────────────────────────────────
+new TektonProject({
+    name: "ocidex",
+    namespace: NAMESPACE,
+    pipelines: [pushPipeline, prPipeline],
+    webhookSecretRef: {
+        secretName: "github-webhook-secret",
+        secretKey: "secret",
+    },
+});
