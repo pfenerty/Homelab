@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: tektonic-npm-push
+  namespace: tektonic-ci
+spec:
+  params:
+    - name: project-name
+      type: string
+    - default: ./
+      name: build-path
+      type: string
+    - name: url
+      type: string
+    - name: revision
+      type: string
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.url)
+        - name: revision
+          value: $(params.revision)
+      taskRef:
+        kind: Task
+        name: tektonic-git-clone
+      workspaces:
+        - name: workspace
+          workspace: workspace
+    - name: test-npm
+      params:
+        - name: build-path
+          value: $(params.build-path)
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: tektonic-test-npm
+      workspaces:
+        - name: workspace
+          workspace: workspace
+  workspaces:
+    - name: workspace

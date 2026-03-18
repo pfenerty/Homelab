@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: tektonic-test-npm
+  namespace: tektonic-ci
+spec:
+  params:
+    - default: ./
+      name: build-path
+      type: string
+  stepTemplate:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  steps:
+    - command:
+        - sh
+        - -c
+        - npm ci && npm test
+      image: node:22-alpine
+      name: test
+      workingDir: $(workspaces.workspace.path)/$(params.build-path)
+  workspaces:
+    - name: workspace
