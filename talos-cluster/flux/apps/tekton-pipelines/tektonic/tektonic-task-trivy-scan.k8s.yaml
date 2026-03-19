@@ -35,12 +35,11 @@ spec:
             secretKeyRef:
               key: token
               name: github-token
-      image: cgr.dev/chainguard/wolfi-base:latest
+      image: maniator/gh:v2.88.1
       name: upload-sarif
       script: |-
         #!/bin/sh
         set -e
-        apk add --no-cache github-cli gzip
         SARIF=$(gzip -c trivy.sarif | base64 -w0)
         gh api "repos/$(params.repo-full-name)/code-scanning/sarifs"   -f commit_sha="$(params.revision)" -f ref=refs/heads/main -f sarif="$SARIF"
       workingDir: $(workspaces.workspace.path)

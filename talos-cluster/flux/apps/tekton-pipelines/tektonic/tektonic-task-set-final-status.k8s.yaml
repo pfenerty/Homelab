@@ -24,7 +24,7 @@ spec:
             secretKeyRef:
               key: token
               name: github-token
-      image: cgr.dev/chainguard/gh:latest
+      image: maniator/gh:v2.88.1
       name: set-status
       script: |-
         #!/bin/sh
