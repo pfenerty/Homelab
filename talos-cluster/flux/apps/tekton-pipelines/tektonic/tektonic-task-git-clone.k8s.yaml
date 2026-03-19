@@ -19,7 +19,7 @@ spec:
       seccompProfile:
         type: RuntimeDefault
   steps:
-    - image: cg.dev/chainguard/git:latest
+    - image: cgr.dev/chainguard/git:latest
       name: clone
       script: |-
         #!/bin/sh
