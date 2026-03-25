@@ -10,6 +10,13 @@ spec:
     - name: revision
       type: string
   stepTemplate:
+    resources:
+      limits:
+        cpu: "1"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
@@ -19,24 +26,11 @@ spec:
         type: RuntimeDefault
   steps:
     - args:
-        - 'curl -fsS -X POST   -H "Authorization: token $GITHUB_TOKEN"   -H "Accept: application/vnd.github+json"   -d "{\"state\":\"pending\",\"context\":\"tektonic-ci/scan\",\"description\":\"Running\"}"   "https://api.github.com/repos/$(params.repo-full-name)/statuses/$(params.revision)"'
-      command:
-        - sh
-        - -c
-      env:
-        - name: GITHUB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              key: token
-              name: github-token
-      image: cgr.dev/chainguard/curl:latest-dev
-      name: set-pending
-    - args:
         - trivy fs --format sarif --output $(workspaces.workspace.path)/trivy.sarif .; EC=$?; echo $EC > /tekton/home/.exit-code; exit $EC
       command:
         - sh
         - -c
-      image: ghcr.io/aquasecurity/trivy:0.69.3
+      image: aquasec/trivy:latest
       name: scan
       onError: continue
       workingDir: $(workspaces.workspace.path)
