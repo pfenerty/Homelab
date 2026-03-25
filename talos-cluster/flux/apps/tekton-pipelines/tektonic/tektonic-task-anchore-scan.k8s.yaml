@@ -9,6 +9,8 @@ spec:
           type: string
         - name: revision
           type: string
+        - name: ref
+          type: string
     stepTemplate:
         computeResources:
             limits:
@@ -68,8 +70,10 @@ spec:
                   GRYPE_EC=$(cat /tekton/steps/step-scan/exitCode 2>/dev/null || echo 0)
                   echo "$GRYPE_EC" > /tekton/home/.exit-code
                   if [ -s scan.sarif ]; then
+                    REF="$(params.ref)"
+                    case "$REF" in refs/*) ;; *) REF="refs/heads/$REF" ;; esac
                     SARIF=$(gzip -c scan.sarif | base64 -w0)
-                    curl -fsS -X POST     -H "Authorization: token $GITHUB_TOKEN"     -H "Accept: application/vnd.github+json"     -H "Content-Type: application/json"     -d "{\"commit_sha\":\"$(params.revision)\",\"ref\":\"refs/heads/main\",\"sarif\":\"$SARIF\"}"     "https://api.github.com/repos/$(params.repo-full-name)/code-scanning/sarifs"
+                    curl -fsS -X POST     -H "Authorization: token $GITHUB_TOKEN"     -H "Accept: application/vnd.github+json"     -H "Content-Type: application/json"     -d "{\"commit_sha\":\"$(params.revision)\",\"ref\":\"$REF\",\"sarif\":\"$SARIF\"}"     "https://api.github.com/repos/$(params.repo-full-name)/code-scanning/sarifs"
                   fi
           command:
               - sh
