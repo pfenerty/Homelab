@@ -10,6 +10,13 @@ spec:
     - name: revision
       type: string
   stepTemplate:
+    computeResources:
+      limits:
+        cpu: "1"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
@@ -21,13 +28,6 @@ spec:
   steps:
     - image: cgr.dev/chainguard/git:latest
       name: clone
-      resources:
-        limits:
-          cpu: "1"
-          memory: 512Mi
-        requests:
-          cpu: 100m
-          memory: 128Mi
       script: |-
         #!/bin/sh
         set -e
