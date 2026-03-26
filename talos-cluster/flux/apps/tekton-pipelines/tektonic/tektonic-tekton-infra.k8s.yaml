@@ -38,7 +38,7 @@ metadata:
   namespace: tektonic-ci
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 2Gi
@@ -108,7 +108,7 @@ spec:
             volumeClaimTemplate:
               spec:
                 accessModes:
-                  - ReadWriteOnce
+                  - ReadWriteMany
                 resources:
                   requests:
                     storage: 1Gi
@@ -181,7 +181,7 @@ spec:
             volumeClaimTemplate:
               spec:
                 accessModes:
-                  - ReadWriteOnce
+                  - ReadWriteMany
                 resources:
                   requests:
                     storage: 1Gi
