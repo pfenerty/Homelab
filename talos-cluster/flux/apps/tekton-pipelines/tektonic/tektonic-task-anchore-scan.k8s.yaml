@@ -26,6 +26,7 @@ spec:
           - ALL
       seccompProfile:
         type: RuntimeDefault
+    workingDir: $(workspaces.workspace.path)
   steps:
     - args:
         - file:package-lock.json
@@ -37,7 +38,6 @@ spec:
         - /syft
       image: ghcr.io/anchore/syft:v1.42.3
       name: generate-sbom
-      workingDir: $(workspaces.workspace.path)
     - args:
         - -v
         - sbom:./sbom.cyclonedx.json
@@ -48,7 +48,6 @@ spec:
       image: ghcr.io/anchore/grype:v0.110.0
       name: scan
       onError: continue
-      workingDir: $(workspaces.workspace.path)
     - args:
         - check
         - ./sbom.cyclonedx.json
@@ -60,7 +59,6 @@ spec:
       image: ghcr.io/anchore/grant:v0.6.4
       name: check-licenses
       onError: continue
-      workingDir: $(workspaces.workspace.path)
     - args:
         - |-
           GRYPE_EC=$(cat /tekton/steps/step-scan/exitCode 2>/dev/null || echo 0)
@@ -88,7 +86,6 @@ spec:
       image: cgr.dev/chainguard/curl:latest-dev
       name: upload-sarif
       onError: continue
-      workingDir: $(workspaces.workspace.path)
     - args:
         - |-
           EXIT_CODE=$(cat /tekton/home/.exit-code)

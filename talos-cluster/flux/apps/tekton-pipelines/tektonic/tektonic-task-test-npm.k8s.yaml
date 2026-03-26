@@ -5,9 +5,6 @@ metadata:
   namespace: tektonic-ci
 spec:
   params:
-    - default: ./
-      name: build-path
-      type: string
     - name: repo-full-name
       type: string
     - name: revision
@@ -27,6 +24,7 @@ spec:
           - ALL
       seccompProfile:
         type: RuntimeDefault
+    workingDir: $(workspaces.workspace.path)
   steps:
     - args:
         - npm ci && npm test; EC=$?; echo $EC > /tekton/home/.exit-code; exit $EC
@@ -36,7 +34,6 @@ spec:
       image: node:22-alpine
       name: test
       onError: continue
-      workingDir: $(workspaces.workspace.path)/$(params.build-path)
     - args:
         - |-
           EXIT_CODE=$(cat /tekton/home/.exit-code)

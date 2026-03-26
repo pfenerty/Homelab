@@ -33,5 +33,6 @@ spec:
         git clone $(params.url) .
         git config --global --add safe.directory $(workspaces.workspace.path)
         git checkout $(params.revision)
+      workingDir: $(workspaces.workspace.path)
   workspaces:
     - name: workspace
