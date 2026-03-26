@@ -24,6 +24,9 @@ spec:
       capabilities:
         drop:
           - ALL
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
       seccompProfile:
         type: RuntimeDefault
     workingDir: $(workspaces.workspace.path)
