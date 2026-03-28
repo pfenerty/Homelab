@@ -24,17 +24,75 @@ spec:
           - ALL
     workingDir: $(workspaces.workspace.path)
   steps:
-    - args:
-        - npm run build; EC=$?; echo $EC > /tekton/home/.exit-code; exit $EC
-      command:
-        - sh
-        - -c
-      env:
+    - image: node:22-alpine
+      name: cache-restore-npm-cache
+      script: |-
+        #!/usr/bin/env nu
+        def log [msg: string] {
+          print $"[(date now | format date '%H:%M:%S')] cache-restore-npm-cache: ($msg)"
+        }
+
+        let hash = (
+          ["package-lock.json"]
+          | each { |f| if ($f | path exists) { open --raw $f } else { "" } }
+          | str join | hash sha256 | str substring 0..15
+        )
+        $hash | save -f /tekton/home/.cache-npm-cache-hash
+        let archive = $"$(workspaces.npm-cache.path)/($hash).tar.zst"
+
+        if ($archive | path exists) {
+          log $"hit ($hash)"
+          $env.ZSTD_NBTHREADS = "1"
+          ^tar --zstd -xf $archive
+          log "restored"
+        } else {
+          log $"miss ($hash)"
+        }
+      workingDir: $(workspaces.workspace.path)
+    - env:
         - name: npm_config_cache
           value: $(workspaces.npm-cache.path)
       image: node:22-alpine
       name: build
       onError: continue
+      script: |-
+        #!/bin/sh
+        [ ! -d node_modules ] && npm ci
+        npm run build; EC=$?; echo $EC > /tekton/home/.exit-code; exit $EC
+      workingDir: $(workspaces.workspace.path)
+    - image: node:22-alpine
+      name: cache-save-npm-cache
+      onError: continue
+      script: |-
+        #!/usr/bin/env nu
+        def log [msg: string] {
+          print $"[(date now | format date '%H:%M:%S')] cache-save-npm-cache: ($msg)"
+        }
+
+        let hash = (try { open --raw /tekton/home/.cache-npm-cache-hash | str trim } catch { "" })
+        if ($hash | is-empty) { log "no hash, skipping"; exit 0 }
+
+        let archive = $"$(workspaces.npm-cache.path)/($hash).tar.zst"
+        if ($archive | path exists) { log $"($hash) exists, skipping"; exit 0 }
+
+        let paths = ["node_modules"] | where { |p| ($p | path exists) }
+        if ($paths | is-empty) { log "no paths to cache"; exit 0 }
+
+        # Evict old entries
+        let max = 3
+        if $max > 0 {
+          let entries = (try { ls $(workspaces.npm-cache.path)/*.tar.zst | sort-by modified | reverse | skip $max } catch { [] })
+          for e in $entries { log $"evicting ($e.name | path basename)"; rm $e.name }
+        }
+
+        log $"saving ($hash) ..."
+        $env.ZSTD_CLEVEL = "1"
+        $env.ZSTD_NBTHREADS = "1"
+        ^tar --zstd -cf $archive ...$paths
+
+        let size = (ls $archive | get size.0)
+        log $"saved ($hash) (($size))"
+      workingDir: $(workspaces.workspace.path)
     - args:
         - |-
           EXIT_CODE=$(cat /tekton/home/.exit-code)
