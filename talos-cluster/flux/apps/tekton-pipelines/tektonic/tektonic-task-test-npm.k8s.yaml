@@ -24,7 +24,7 @@ spec:
           - ALL
     workingDir: $(workspaces.workspace.path)
   steps:
-    - image: node:22-alpine
+    - image: ghcr.io/pfenerty/apko-cicd/base:stable
       name: cache-restore-npm-cache
       script: |-
         #!/usr/bin/env nu
@@ -60,7 +60,7 @@ spec:
         [ ! -d node_modules ] && npm ci
         npm test; EC=$?; echo $EC > /tekton/home/.exit-code; exit $EC
       workingDir: $(workspaces.workspace.path)
-    - image: node:22-alpine
+    - image: ghcr.io/pfenerty/apko-cicd/base:stable
       name: cache-save-npm-cache
       onError: continue
       script: |-
