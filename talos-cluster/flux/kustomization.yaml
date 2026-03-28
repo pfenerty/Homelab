@@ -7,7 +7,6 @@ resources:
     - metrics-server.kustomization.yaml
     - local-path-provisioner.kustomization.yaml
     - tekton.kustomization.yaml
-    - tekton-pipelines.kustomization.yaml
     - tailscale.kustomization.yaml
     - hubble.kustomization.yaml
     - cloudflare-gateway.kustomization.yaml
@@ -15,3 +14,4 @@ resources:
     - renovate.kustomization.yaml
     - ocidex-ci.kustomization.yaml
     - nfs.kustomization.yaml
+    - tektonic-ci.kustomization.yaml
