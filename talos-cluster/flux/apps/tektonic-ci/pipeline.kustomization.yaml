@@ -9,7 +9,7 @@ spec:
     interval: 3m0s
     retryInterval: 60s
     prune: true
-    path: .tekton/
+    path: .tektonic/
     sourceRef:
         kind: GitRepository
         name: tektonic
