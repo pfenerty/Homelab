@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
     - flux-system
     - tekton.kustomization.yaml
-    - tekton-pipelines.kustomization.yaml
     - tailscale.kustomization.yaml
     - ocidex-ci.kustomization.yaml
     - tektonic-ci.kustomization.yaml
