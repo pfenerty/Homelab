@@ -16,3 +16,25 @@ patches:
           data:
             set-security-context: "true"
             disable-affinity-assistant: "true"
+    # GKE Autopilot forbids binding roles to system:authenticated
+    - patch: |-
+          $patch: delete
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: RoleBinding
+          metadata:
+            name: tekton-pipelines-info
+            namespace: tekton-pipelines
+    - patch: |-
+          $patch: delete
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: RoleBinding
+          metadata:
+            name: tekton-triggers-info
+            namespace: tekton-pipelines
+    - patch: |-
+          $patch: delete
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: RoleBinding
+          metadata:
+            name: tekton-dashboard-info
+            namespace: tekton-pipelines
