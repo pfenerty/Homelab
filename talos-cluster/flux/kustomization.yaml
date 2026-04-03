@@ -6,12 +6,12 @@ resources:
     - gateway-api.kustomization.yaml
     - metrics-server.kustomization.yaml
     - local-path-provisioner.kustomization.yaml
-    - tekton.kustomization.yaml
+    # - tekton.kustomization.yaml
     - tailscale.kustomization.yaml
     - hubble.kustomization.yaml
     - cloudflare-gateway.kustomization.yaml
     - podinfo.kustomization.yaml
-    - renovate.kustomization.yaml
-    - ocidex-ci.kustomization.yaml
+    # - renovate.kustomization.yaml
+    # - ocidex-ci.kustomization.yaml
     - nfs.kustomization.yaml
-    - tektonic-ci.kustomization.yaml
+    # - tektonic-ci.kustomization.yaml
