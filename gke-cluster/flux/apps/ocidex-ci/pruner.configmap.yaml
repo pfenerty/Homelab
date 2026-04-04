@@ -9,4 +9,4 @@ metadata:
 data:
     ns-config: |
         ttlSecondsAfterFinished: 43200
-        historyLimit: 10
+        historyLimit: 5
