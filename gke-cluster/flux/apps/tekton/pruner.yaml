@@ -250,7 +250,7 @@ metadata:
     pruner.tekton.dev/config-type: global
 data:
   global-config: |-
-    enforcedConfigLevel: global
+    enforcedConfigLevel: namespace
     historyLimit: 100
 
 ---
